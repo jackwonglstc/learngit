@@ -6,3 +6,6 @@ V5.20191105 I am at office!
 V6.20191106 I am at home!
 
 20250708  i test github push in office!
+
+https://raw.githubusercontent.com/<用户名>/<仓库名>/<分支名>/<文件路径>
+curl -o quic_server.py https://raw.githubusercontent.com/jackwonglstc/learngit/master/quic_server.py

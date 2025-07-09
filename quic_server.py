@@ -39,8 +39,8 @@ class QuicServerProtocol:
 async def run_server():
     configuration = QuicConfiguration(
         is_client=False,
-        certificate="cert.pem",
-        private_key="key.pem"
+        certificate=r"./cert.pem",
+        private_key=r"./key.pem"
     )
     await serve(
         host="0.0.0.0",
