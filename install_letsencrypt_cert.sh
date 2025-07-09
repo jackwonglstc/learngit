@@ -20,8 +20,8 @@ for cmd in curl git; do
 done
 
 # 检查端口 80 是否被占用
-if netstat -tuln | grep ':80 ' > /dev/null; then
-    echo "错误：端口 80 已被占用！请释放端口 80 后重试。"
+if lsof -i :80 > /dev/null 2>&1; then
+    echo "错误：端口 80 已被占用！"
     exit 1
 fi
 
