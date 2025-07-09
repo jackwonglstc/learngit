@@ -1,45 +1,31 @@
+# test_client.py
 import asyncio
-import ssl
-import logging
-import sys
 from aioquic.asyncio import connect
 from aioquic.quic.configuration import QuicConfiguration
 
-# 启用详细日志
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    stream=sys.stdout
-)
+async def send():
+    configuration = QuicConfiguration(is_client=True)
+    configuration.verify_mode = False  # 忽略证书验证
+    configuration.server_name = "localhost"  # 必须与 CN 匹配
 
-async def run_client(host, port):
-    config = QuicConfiguration(
-        is_client=True,
-        alpn_protocols=["h3"],
-        verify_mode=ssl.CERT_NONE
-    )
-    
-    try:
-        async with connect(host, port, configuration=config) as client:
-            logging.info(f"已连接到 {host}:{port}")
-            reader, writer = await client.create_stream()
-            message = "Hello, QUIC!"
-            writer.write(message.encode())
-            writer.write_eof()
-            client.transmit()
-            response = await asyncio.wait_for(reader.read(), timeout=5.0)
-            logging.info(f"客户端收到: {response.decode()}")
-            await client.wait_closed()
-    except asyncio.TimeoutError:
-        logging.error("连接超时，服务器可能未响应")
-        sys.exit(1)
-    except Exception as e:
-        logging.error(f"连接失败: {e}", exc_info=True)
-        sys.exit(1)
+    async with connect("127.0.0.1", 4433, configuration=configuration) as client:
+       while True:
+            user_input = input("你说: ").strip()
+            if user_input.lower() == "quit":
+                print("正在关闭客户端连接...")
+                client.close()
+                try:
+                    # 等待连接关闭，最多等5秒
+                    await asyncio.wait_for(client.wait_closed(), timeout=5.0)
+                except asyncio.TimeoutError:
+                    print("等待关闭超时，强制退出")
+                break
+
+            stream_id = client._quic.get_next_available_stream_id()
+            client._quic.send_stream_data(stream_id, user_input.encode(), end_stream=True)
+            client.transmit()  # <-- 推动数据立刻发送
+            await asyncio.sleep(0)
+       # await client.wait_closed()
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(run_client("localhost", 8443))
-    except Exception as e:
-        logging.error(f"主程序错误: {e}", exc_info=True)
-        sys.exit(1)
+    asyncio.run(send())

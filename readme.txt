@@ -9,3 +9,5 @@ V6.20191106 I am at home!
 
 https://raw.githubusercontent.com/<用户名>/<仓库名>/<分支名>/<文件路径>
 curl -o quic_server.py https://raw.githubusercontent.com/jackwonglstc/learngit/master/quic_server.py
+
+openssl req -x509 -newkey rsa:2048 -keyout key2.pem -out cert2.pem -days 365 -nodes -subj "/CN=localhost" -sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:-1
